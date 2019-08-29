@@ -1,13 +1,27 @@
-# Microsoft.PowerShell_profile.ps1
-# notepad $profile
+# Remove Hyper-V modules, cause in conflict with VMware admins (modules)
+(Get-Module -Name Hyper-V) | Remove-Module -Force -ErrorAction SilentlyContinue
 
-# Remove Hyper-V module, so no conflicting cmdlets
-Remove-Module -name Hyper-V -ErrorAction SilentlyContinue
+# Set policy
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 
-# Add all VMware snap-ins
-Add-PSSnapin -name VMware.* -ErrorAction SilentlyContinue
+#<# Test paths for PowerShell functions
+$test_esod_functions_path_userprofile = "$($env:USERPROFILE)\GitHub\esodesod\scripts\powershell\functions"
+if (Test-Path $test_esod_functions_path_userprofile) {
+    $result_esod_functions_path = $test_esod_functions_path_userprofile
+    Write-Host "INFO: Found PowerShell functions in $result_esod_functions_path" -ForegroundColor DarkGray
+}
+#>
 
-# Add single VmMware snap-ins
-# Add-PSSnapin -name VMware.VimAutomation.Core"
-# Add-PSSnapin -name VMware.ImageBuilder"
-# Add-PSSnapin -name VMware.DeployAutomation"
+#<# Load PowerShell functions, if available
+if (Test-Path $result_esod_functions_path) {
+    Write-Host "INFO: Loading functions from path $($result_esod_functions_path)" -ForegroundColor DarkGray
+    Get-ChildItem "$($result_esod_functions_path)\*.ps1" | ForEach-Object {
+        Write-Host "INFO: Loading $_" -ForegroundColor DarkGray
+        .$_
+    }
+    Write-Host "Custom esod.no PowerShell environment loaded" -ForegroundColor DarkGreen
+}
+else {
+    Write-Host "INFO: Didn't find any match, searching for PowerShell functions" -ForegroundColor Yellow
+}
+#>
